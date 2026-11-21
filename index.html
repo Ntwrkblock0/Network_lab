@@ -118,5 +118,209 @@ init();
 })();
 </script>
 
+<!-- NetworkLab: Açılır/Kapanır Sol Menü -->
+<style>
+  /* İlk açılışta menü açık */
+  .nl-sidebar-toggle {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #dce7ec;
+    border-radius: 10px;
+    background: #f5faf9;
+    color: #264858;
+    cursor: pointer;
+    font-size: 21px;
+    margin-right: 12px;
+  }
+
+  .nl-sidebar-toggle:hover {
+    background: #e6f5f0;
+  }
+
+  /* Menü kapatıldığında içerik genişlesin */
+  .shell.nl-sidebar-hidden {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+  }
+
+  .shell.nl-sidebar-hidden > .sidebar {
+    display: none !important;
+  }
+
+  /* Menü grupları */
+  .nl-section-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: inherit;
+    border: none;
+    background: transparent;
+    font: inherit;
+    letter-spacing: inherit;
+    cursor: pointer;
+    padding: 2px 0;
+    text-align: left;
+  }
+
+  .nl-section-toggle:hover {
+    color: #d4f6ed;
+  }
+
+  .nl-section-arrow {
+    display: inline-block;
+    transition: transform .15s;
+  }
+
+  .nl-section-toggle[aria-expanded="false"]
+  .nl-section-arrow {
+    transform: rotate(-90deg);
+  }
+
+  .nl-group-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 860px) {
+    .shell.nl-sidebar-hidden {
+      display: block;
+    }
+
+    .nl-sidebar-toggle {
+      width: 36px;
+      height: 36px;
+      margin-right: 8px;
+    }
+  }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  const shell = document.querySelector('.shell');
+  const sidebar = shell && shell.querySelector('.sidebar');
+  const topbar = shell && shell.querySelector('.topbar');
+
+  if (!shell || !sidebar || !topbar) return;
+
+  // Sol menü açma/kapatma butonu
+  const toggle = document.createElement('button');
+
+  toggle.type = 'button';
+  toggle.className = 'nl-sidebar-toggle';
+  toggle.innerHTML = '&#9776;';
+
+  toggle.setAttribute('aria-label', 'Sol menüyü kapat');
+  toggle.setAttribute('aria-expanded', 'true');
+
+  if (!sidebar.id) {
+    sidebar.id = 'networklab-sidebar';
+  }
+
+  toggle.setAttribute('aria-controls', sidebar.id);
+
+  topbar.insertBefore(toggle, topbar.firstChild);
+
+  // İlk açılışta açık
+  let sidebarOpen = true;
+
+  toggle.addEventListener('click', function (event) {
+    event.stopPropagation();
+
+    sidebarOpen = !sidebarOpen;
+
+    shell.classList.toggle(
+      'nl-sidebar-hidden',
+      !sidebarOpen
+    );
+
+    toggle.setAttribute(
+      'aria-expanded',
+      String(sidebarOpen)
+    );
+
+    toggle.setAttribute(
+      'aria-label',
+      sidebarOpen
+        ? 'Sol menüyü kapat'
+        : 'Sol menüyü aç'
+    );
+
+    toggle.title = sidebarOpen
+      ? 'Sol menüyü kapat'
+      : 'Sol menüyü aç';
+  });
+
+  // Sol menü içindeki grupları ayrı ayrı aç/kapat
+  const sections = [
+    {
+      nav: sidebar.querySelector('.mainmenu'),
+      label: 'ÇALIŞMA ALANI'
+    },
+    {
+      nav: sidebar.querySelector('.topicmenu'),
+      label: 'KONU KOLEKSİYONU'
+    }
+  ];
+
+  sections.forEach(function (section, i) {
+    if (!section.nav) return;
+
+    const label = section.nav.previousElementSibling;
+
+    if (!label || !label.classList.contains('menu-label')) {
+      return;
+    }
+
+    // Mevcut + butonu koru
+    Array.from(label.childNodes).forEach(function (node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        node.textContent = '';
+      }
+    });
+
+    const btn = document.createElement('button');
+
+    btn.type = 'button';
+    btn.className = 'nl-section-toggle';
+
+    btn.innerHTML =
+      section.label +
+      ' <span class="nl-section-arrow">▾</span>';
+
+    btn.setAttribute('aria-expanded', 'true');
+
+    if (!section.nav.id) {
+      section.nav.id = 'networklab-section-' + i;
+    }
+
+    btn.setAttribute('aria-controls', section.nav.id);
+
+    label.insertBefore(btn, label.firstChild);
+
+    btn.addEventListener('click', function (event) {
+      event.stopPropagation();
+
+      const expanded =
+        btn.getAttribute('aria-expanded') === 'true';
+
+      btn.setAttribute(
+        'aria-expanded',
+        String(!expanded)
+      );
+
+      section.nav.classList.toggle(
+        'nl-group-hidden',
+        expanded
+      );
+    });
+  });
+
+})();
+</script>
+
 </body>
 </html>
